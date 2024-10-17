@@ -1,9 +1,11 @@
+import { connectToDB } from '@/lib/db';
 import User from '@/lib/models/User';
 import { generateToken } from '@/utils/token';
 import bcrypt from 'bcryptjs';
 import { NextRequest } from 'next/server';
 
 export async function POST(req: NextRequest) {
+  await connectToDB()
   try {
     const { email, password } = await req.json();
     if (!email || !password) {

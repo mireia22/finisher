@@ -1,7 +1,6 @@
 "use client";
 import { useUserContext } from "@/app/context/userContext";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const LoginForm = () => {
@@ -9,13 +8,13 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [success, setSuccess] = useState("");
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       await login(email, password);
-      router.push("/dahboard");
     } catch (err) {
       setError("Invalid credentials");
       console.log(err)
@@ -23,9 +22,10 @@ const LoginForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 space-y-4">
-      <h2 className="text-xl font-semibold">Login</h2>
-      {error && <p className="text-red-500">{error}</p>}
+    <form onSubmit={handleSubmit} className="p-4 text-xl space-y-4 bg-white flex flex-col  gap-1 rounded-md"
+    
+    >
+      <h2 className="text-3xl font-semibold self-center text-rose-900">LOGIN</h2>
       <div>
         <label htmlFor="email" className="block">Email:</label>
         <input
@@ -33,7 +33,7 @@ const LoginForm = () => {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="border p-2 w-full"
+          className="border border-rose-950 p-2 w-full rounded-md"
           required
         />
       </div>
@@ -44,15 +44,22 @@ const LoginForm = () => {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 w-full"
+          className="border border-rose-950 p-2 w-full rounded-md"
           required
         />
       </div>
-      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Login</button>
-      <p>Dont you have an account? 
+      {error && <p className="text-red-500 self-center text-sm font-semibold">{error}</p>}
+      {success && <p className="text-green-500 self-center text-sm font-semibold">{success}</p>}
+      <button type="submit" className="bg-rose-900 text-white px-4 py-2 rounded">Login</button>
+      <div className="flex gap-2 self-center">
+      <p>Dont have an account? 
 
 </p>
-<Link href={"/register"}>Register</Link>
+<Link href={"/register"} className="underline text-rose-900">
+         Register
+         </Link>
+      </div>
+   
     </form>
   );
 };

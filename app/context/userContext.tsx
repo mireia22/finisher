@@ -1,12 +1,11 @@
 "use client"
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import LoginPage from '../login/page';
 
 export type Answer = {
   text: string;
   explanation:string
-
-
 }
 
 export type Question = {
@@ -35,14 +34,15 @@ export type User = {
 export type UserWithToken = {
   token: string;
   user: User;
-  questionsAnswered?: QuestionAnswered[];
+  
 
 };
 
 interface UserContextProps {
   user: UserWithToken | null;
   setUser: React.Dispatch<React.SetStateAction<UserWithToken | null>>;
-  fetchUser: () => Promise<void>;
+  fetchUser: (user: UserWithToken) => Promise<void>;
+  register: (name:string, email:string, password:string) => Promise<void>;
   login: (email:string, password:string) => Promise<void>;
   logout: () => Promise<void>;
   addCorrectQuestion: (question: Question) => Promise<void>;
@@ -53,6 +53,7 @@ const initialState: UserContextProps = {
   user: null,
   setUser: () => {},
   fetchUser: async () => {},
+  register: async () => {},
   login: async () => {},
   logout: async () => {},
   addCorrectQuestion: async () => {},
@@ -70,9 +71,10 @@ export const useUserContext = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode}) => {
   const [user, setUser] = useState<UserWithToken | null>(null);
 const router = useRouter()
+const pathname = usePathname()
 
   useEffect(() => {
     const userFromStorage = localStorage.getItem('user');
@@ -81,26 +83,61 @@ const router = useRouter()
     }
   }, []); 
 
-  const fetchUser = async () => {
+  const fetchUser = async (user: UserWithToken) => {
+    if (!user || !user.token) {
+      console.error("No token found");
+      return; 
+    }
+    
     try {
       const response = await fetch('/api/user', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${user?.token}`,
+          'Authorization': `Bearer ${user.token}`,
         },
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+  
+      const { user: fetchedUser, token } = await response.json();
 
-      const fetchedUser = await response.json();
-      setUser(fetchedUser);
-      console.log(fetchedUser);
+      setUser({ user: fetchedUser, token }); 
+      localStorage.setItem('user', JSON.stringify({ user: fetchedUser, token }));
+
+      console.log("fetched user in context", user);
     } catch (error) {
       console.error("Error fetching user:", error);
     }
   };
+  
+  
+
+  const register = async (name: string, email: string, password: string) => {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name, email, password }),
+    });
+  
+    if (!response.ok) {
+      console.error("Registration failed");
+      return;
+    }
+  
+    const newUser: UserWithToken = await response.json();
+    console.log("NEW USER REGISTER", newUser);
+    
+    setUser(newUser);
+    localStorage.setItem('user', JSON.stringify(newUser));
+
+    
+    router.push("/dashboard");
+  };
+  
 
   const login = async (email: string, password: string) => {
     const response = await fetch('/api/auth/login', {
@@ -111,21 +148,29 @@ const router = useRouter()
       },
     });
     const data = await response.json();
+
     setUser(data);
+    router.push("/dashboard")
+
     localStorage.setItem('user', JSON.stringify(data));
   };
 
+  
+  
   const logout = async (): Promise<void> => {
     setUser(null);
     localStorage.removeItem('user');
+    router.push("/")
   };
+
+
 
 
   const addCorrectQuestion = (question: Question): Promise<void> => {
     return new Promise((resolve) => {
       if (user) {
         const updatedQuestions = [
-          ...(user.questionsAnswered || []),
+          ...(user.user.questionsAnswered || []),
           { _id: question._id, isCorrect: true },
         ];
         setUser({ ...user, questionsAnswered: updatedQuestions });
@@ -138,23 +183,31 @@ const router = useRouter()
     return new Promise((resolve) => {
       if (user) {
         const updatedQuestions = [
-          ...(user.questionsAnswered || []),
+          ...(user.user.questionsAnswered || []),
           { _id: question._id, isCorrect: false },
         ];
-        setUser({ ...user, questionsAnswered: updatedQuestions });
+        setUser({ ...user.user, questionsAnswered: updatedQuestions });
       }
       resolve(); 
     });
   };
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
-    }
-  }, [user]);
+  
+
+  if (!user && pathname !== "/register" && pathname !== "/") {
+    return  (
+    <AuthContext.Provider value={{ user, register, login, logout, fetchUser, setUser, addCorrectQuestion,
+      addIncorrectQuestion}}>
+      <LoginPage/>
+
+    </AuthContext.Provider>
+
+  )
+}
+ 
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, fetchUser, setUser, addCorrectQuestion,
+    <AuthContext.Provider value={{ user, register, login, logout, fetchUser, setUser, addCorrectQuestion,
       addIncorrectQuestion}}>
       {children}
     </AuthContext.Provider>

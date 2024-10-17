@@ -1,6 +1,19 @@
+"use client"
 import Link from "next/link";
+import { useUserContext } from "./context/userContext";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const { user } = useUserContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      router.push("/dashboard");
+    } 
+  }, []);
+  
   return (
     <div className="flex items-center justify-center gap-2">
       <div className="flex flex-col gap-4 mt-10">

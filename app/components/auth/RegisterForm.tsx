@@ -1,40 +1,35 @@
 "use client";
+import { useUserContext } from "@/app/context/userContext";
 import Link from "next/link";
 import { useState } from "react";
 
 const RegisterForm = () => {
+  const {register} = useUserContext()
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState("");
+
   const [success, setSuccess] = useState("");
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    const response = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, email, password }),
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      setSuccess("Registration successful! You can now login.");
-    } else {
-      setError(data.message || "Error registering user.");
+    try {
+      await register(name, email, password);
+    } catch (err) {
+      setError("Invalid credentials");
+      console.log(err)
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 space-y-4">
-      <h2 className="text-xl font-semibold">Register</h2>
-      {error && <p className="text-red-500">{error}</p>}
-      {success && <p className="text-green-500">{success}</p>}
+    <form onSubmit={handleSubmit} className="p-4 text-xl space-y-4 bg-white flex flex-col  gap-1 rounded-md"
+    style={{ fontFamily: 'var(--font-agdasima)' }}
+    >
+      <h2 className="text-3xl font-semibold self-center text-rose-900">REGISTER</h2>
+     
       <div>
         <label htmlFor="name" className="block">Name:</label>
         <input
@@ -42,7 +37,7 @@ const RegisterForm = () => {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="border p-2 w-full"
+          className="border  border-rose-950  p-2 w-full rounded-md"
           required
         />
       </div>
@@ -53,7 +48,7 @@ const RegisterForm = () => {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="border p-2 w-full"
+          className="border border-rose-950 p-2 w-full rounded-md"
           required
         />
       </div>
@@ -64,17 +59,22 @@ const RegisterForm = () => {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 w-full"
+          className="border border-rose-950 p-2 w-full rounded-md"
           required
         />
       </div>
-      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Register</button>
-    <p>Already have an account? 
+      {error && <p className="text-red-500 self-center text-sm font-semibold">{error}</p>}
+      {success && <p className="text-green-500 self-center text-sm font-semibold">{success}</p>}
+      <button type="submit" className="bg-rose-900 text-white px-4 py-2 rounded">Register</button>
+      <div className="flex gap-2 self-center">
+      <p>Already have an account? 
 
-    </p>
-    <Link href={"/login"}>
-             Login
-             </Link>
+</p>
+<Link href={"/login"} className="underline text-rose-900">
+         Login
+         </Link>
+      </div>
+   
     </form>
   );
 };

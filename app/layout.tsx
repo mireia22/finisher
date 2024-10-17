@@ -32,15 +32,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 
+  console.log("children in layout", children)
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${agdasima.variable} antialiased bg-rose-950`}
       >
         <AuthProvider>
-          <main className="p-4">
+          <div className=" text-xl"
+           style={{ fontFamily: 'var(--font-agdasima)' }}
+          >
           {children}
-          </main>
+          </div>
         </AuthProvider>
       </body>
     </html>

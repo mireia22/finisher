@@ -18,10 +18,12 @@ await connectToDB()
     }
 
     const newUser = new User({ name, email, password,  role: role || 'user'});
+
+    console.log("NEW USER", newUser)
     await newUser.save();
 
     const token = generateToken(newUser._id, newUser.email);
-    return new Response(JSON.stringify({ token, user: { name, email } }), { status: 201 });
+    return new Response(JSON.stringify({ token, user: { name, email, id: newUser._id } }), { status: 201 });
   } catch (error) {
     console.error('Error registering user:', error); 
     return new Response(JSON.stringify({ message: 'Error registering user' }), { status: 500 });

@@ -11,17 +11,19 @@ const Practice = () => {
   const [correctQuestionsCount, setCorrectQuestionsCount] = useState<number | null>(null);
   const [allQuestionsCount, setAllQuestionsCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useUserContext();
+  const { user, fetchUser } = useUserContext();
 
   // Retrieve user ID and token
-  const userId = user?.user.id || localStorage.getItem('user');
-  const token = user?.token || localStorage.getItem('token'); // Assuming you store the JWT in localStorage
+  const userId = user?.user.id 
+  const token = user?.token 
 
   useEffect(() => {
-    if (!userId) {
-      router.push('/login');
+    if (!user) {
+      router.push("/login");
+    } else if (user && user.token) {
+      fetchUser(user); 
     }
-  }, [userId, router]);
+  }, []);
 
   // Fetch Categories
   useEffect(() => {
@@ -116,7 +118,6 @@ const Practice = () => {
     }
   }, [token, userId]);
 
-  // Fetch All Questions Count
   useEffect(() => {
     const fetchAllQuestionsCount = async () => {
       try {

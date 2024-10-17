@@ -10,4 +10,6 @@ const RegisterPage = () => {
   );
 };
 
+RegisterPage.skipLoginPage = true 
+  
 export default RegisterPage;

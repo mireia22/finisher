@@ -24,7 +24,8 @@ export const isAuth = async (req: NextRequest) => {
         console.log("User not found"); 
         return NextResponse.json({ message: 'User not found' }, { status: 404 });
       }
-      
+      console.log("token in isauth", token)
+      console.log("user in isauth", user)
       return user;
       
     } catch (error) {
